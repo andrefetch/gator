@@ -4,7 +4,11 @@ import (
 	"log"
 	"os"
 
+	"database/sql"
+
 	"github.com/andrefetch/gator/internal/config"
+	"github.com/andrefetch/gator/internal/database"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -14,8 +18,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	db, err := sql.Open("postgres", cfg.DBURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dbQueries := database.New(db)
+
 	s := &state{
 		cfg: &cfg,
+		db:  dbQueries,
 	}
 
 	cmds := commands{
@@ -23,6 +35,7 @@ func main() {
 	}
 
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
 
 	if len(os.Args) < 2 {
 		log.Fatal("not enough args")
