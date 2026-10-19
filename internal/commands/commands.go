@@ -28,6 +28,7 @@ func New() *Commands {
 	cmds.register("login", handlerLogin)
 	cmds.register("register", handlerRegister)
 	cmds.register("reset", handlerReset)
+	cmds.register("users", handlerUsers)
 	return cmds
 }
 
