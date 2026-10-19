@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 func handlerLogin(s *state, cmd command) error {
 
@@ -8,7 +11,12 @@ func handlerLogin(s *state, cmd command) error {
 		return fmt.Errorf("username is required to login.")
 	}
 
-	err := s.cfg.SetUser(cmd.args[0])
+	_, err := s.db.GetUser(context.Background(), cmd.args[0])
+	if err != nil {
+		return err
+	}
+
+	err = s.cfg.SetUser(cmd.args[0])
 	if err != nil {
 		return err
 	}
