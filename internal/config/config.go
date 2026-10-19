@@ -29,7 +29,22 @@ func (c *Config) SetUser(username string) error {
 		return err
 	}
 
-	return nil
+	return write(*c)
+}
+
+func write(cfg Config) error {
+
+	path, err := getConfigFilePath()
+	if err != nil {
+		return err
+	}
+
+	data, err := json.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, data, 0600)
 }
 
 func getConfigFilePath() (string, error) {
@@ -47,7 +62,10 @@ func getConfigFilePath() (string, error) {
 
 func Read() (Config, error) {
 
-	path, _ := getConfigFilePath()
+	path, err := getConfigFilePath()
+	if err != nil {
+		return Config{}, err
+	}
 
 	readFile, err := os.ReadFile(path)
 	if err != nil {
