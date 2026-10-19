@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/andrefetch/Gator/internal/config"
+	"github.com/andrefetch/gator/internal/config"
 )
 
 func main() {
