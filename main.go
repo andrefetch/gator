@@ -6,6 +6,7 @@ import (
 
 	"database/sql"
 
+	"github.com/andrefetch/gator/internal/commands"
 	"github.com/andrefetch/gator/internal/config"
 	"github.com/andrefetch/gator/internal/database"
 	_ "github.com/lib/pq"
@@ -25,29 +26,22 @@ func main() {
 
 	dbQueries := database.New(db)
 
-	s := &state{
-		cfg: &cfg,
-		db:  dbQueries,
+	state := &commands.State{
+		Config: &cfg,
+		DB:     dbQueries,
 	}
-
-	cmds := commands{
-		handlers: make(map[string]func(*state, command) error),
-	}
-
-	cmds.register("login", handlerLogin)
-	cmds.register("register", handlerRegister)
-	cmds.register("reset", handlerReset)
+	cmds := commands.New()
 
 	if len(os.Args) < 2 {
 		log.Fatal("not enough args")
 	}
 
-	cmd := command{
-		name: os.Args[1],
-		args: os.Args[2:],
+	cmd := commands.Command{
+		Name: os.Args[1],
+		Args: os.Args[2:],
 	}
 
-	err = cmds.run(s, cmd)
+	err = cmds.Run(state, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
