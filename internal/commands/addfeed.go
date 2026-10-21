@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func handlerAddFeed(state *State, cmd Command) error {
+func handlerAddFeed(state *State, cmd Command, user database.User) error {
 	if len(cmd.Args) < 2 {
 		return fmt.Errorf("usage: addfeed <name> <url>")
 	}
