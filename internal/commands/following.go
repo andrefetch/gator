@@ -3,9 +3,11 @@ package commands
 import (
 	"context"
 	"fmt"
+
+	"github.com/andrefetch/gator/internal/database"
 )
 
-func handlerFollowing(state *State, _ Command) error {
+func handlerFollowing(state *State, cmd Command, user database.User) error {
 
 	ctx := context.Background()
 
