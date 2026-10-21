@@ -2,11 +2,16 @@ package commands
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
+
+	"github.com/andrefetch/gator/internal/database"
+	"github.com/google/uuid"
 )
 
 func handlerAgg(state *State, cmd Command) error {
@@ -64,7 +69,31 @@ func scrapeFeeds(ctx context.Context, state *State) error {
 		return fmt.Errorf("fetch feed %q: %w", feed.Url, err)
 	}
 	for _, item := range rssFeed.Channel.Item {
-		fmt.Println(item.Title)
+		postURL := strings.TrimSpace(item.Link)
+		if postURL == "" {
+			log.Printf("skipping post %q from feed %q: missing URL", item.Title, feed.Url)
+			continue
+		}
+
+		publishedAt, err := parsePublishedAt(item.PubDate)
+		if err != nil {
+			log.Printf("post %q from feed %q: %v", postURL, feed.Url, err)
+		}
+
+		now := time.Now().UTC()
+		err = state.DB.CreatePost(ctx, database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   now,
+			UpdatedAt:   now,
+			Title:       item.Title,
+			Url:         postURL,
+			Description: sql.NullString{String: item.Description, Valid: item.Description != ""},
+			PublishedAt: publishedAt,
+			FeedID:      feed.ID,
+		})
+		if err != nil {
+			log.Printf("error saving post %q from feed %q: %v", postURL, feed.Url, err)
+		}
 	}
 
 	return nil
