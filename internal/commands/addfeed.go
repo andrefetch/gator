@@ -11,11 +11,13 @@ import (
 
 func handlerAddFeed(state *State, cmd Command) error {
 	if len(cmd.Args) < 2 {
-		return fmt.Errorf("usage : addfeed <name> <url>")
+		return fmt.Errorf("usage: addfeed <name> <url>")
 	}
 
+	ctx := context.Background()
+
 	currentUser, err := state.DB.GetUser(
-		context.Background(),
+		ctx,
 		state.Config.CurrentUserName,
 	)
 	if err != nil {
@@ -25,7 +27,7 @@ func handlerAddFeed(state *State, cmd Command) error {
 	now := time.Now()
 
 	feed, err := state.DB.CreateFeed(
-		context.Background(),
+		ctx,
 		database.CreateFeedParams{
 			ID:        uuid.New(),
 			CreatedAt: now,
@@ -39,6 +41,25 @@ func handlerAddFeed(state *State, cmd Command) error {
 		return err
 	}
 
-	fmt.Printf("Created feed: %+v\n", feed)
+	follow, err := state.DB.CreateFeedFollow(
+		ctx,
+		database.CreateFeedFollowParams{
+			ID:        uuid.New(),
+			CreatedAt: now,
+			UpdatedAt: now,
+			UserID:    currentUser.ID,
+			FeedID:    feed.ID,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf(
+		"feed %s added and followed by %s\n",
+		follow.FeedName,
+		follow.UserName,
+	)
+
 	return nil
 }
